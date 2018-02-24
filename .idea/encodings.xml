@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/Buffer.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/FileTest/lian-xi-Socket-client.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/FileTest/lian-xi-Socket-server.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/async-sync.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/big-file-copy.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/hello.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/jian-li-Socket-client.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/jian-li-Socket-server.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/liu-de-fang-shi-xie-wen-jian.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/module.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/path.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/qi-ta-wen-jian-cao-zuo-API.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/require.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/笔记" charset="UTF-8" />
+  </component>
+</project>
