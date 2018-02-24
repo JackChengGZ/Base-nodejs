@@ -1,0 +1,598 @@
+Node.js其实就是一个V8引擎集成的平台，简介及配置、快速上手、核心特点、模块化。
+但是它和传统的浏览器的平台还是有一部分的差距。如下：
+    1.客户端的Javascript是怎么样的？
+        一门脚本语言、运行在浏览器中、一般用在客户端页面交互
+    2.Javascript的运行环境？
+        浏览器？其实不够严谨，应该是浏览器JS引擎。
+        Chrome：1.请求一个HTTP地址(封装一个请求报文):浏览器的最大作用就是将一个URL地址封装成报文。
+                2.再将服务器端响应的报文解析出来。(响应的内容不一样)：
+                    .html=>渲染html
+                    .css=>渲染css
+                    .image=>渲染image
+                    .js=>解释JS
+    3.浏览器中的Javascript可以做什么？不可以做什么？
+         能:操作DOM,Ajax/跨域, BOM页面跳转等。
+         不能:文件操作(文件和文件夹的CRUD)、没有办法操作操作系统的信息等。
+         由于JS这门语言运行环境比较特殊:JS文件是存放在服务器上的,然后被请求到客户端,在客户端执行。
+    4.在开发人员能力相同的情况下编程语言的能力取决于什么？
+         语言本身只是提供定义变量，定义函数，定义类型之类的操作等。
+         取决于该语言的平台(环境);
+         对于js来说，我们常说的JS就是ES,大部分能力都是由浏览器JS引擎决定。
+         BOM和DOM可以说是浏览器开放出来的接口。
+         比如：Cordova中提供JS调用摄像头，操作本地的API
+         注意：Java是语言也是平台，它运行在Java虚拟机上(可以跨平台：操作系统)
+               C#语言 运行在.NET FrameWork(windows)平台上;(C#也可以运行在其他平台,比如MONO(Linux),因为它不能跨平台)
+               PHP是平台又是语言
+         **************语言的能力一定取决于平台*********
+    5.Javascript只可以运行在浏览器吗？
+        这个说法不对;能运行在哪取决于它的运行环境在哪。
+
+
+
+
+
+
+
+
+什么是Node?(其实是Node的平台研发出来,然后创始人选择了Javascript语言,也可以选择Ruby等)
+    1.node.js基于ChromeV8引擎的Javascript运行环境,node.js使用单线程,事件驱动,非阻塞I/O模式创建
+    一个轻量级模型。Node.js的包管理器npm是最大的开源库生态系统。
+    2.把node.js搬到了服务端,跟客户端没有任何关系。就是在服务器端开发的一个东西。Javascript
+    语言在Node服务器上运行,Node有点像Javascript虚拟机。另外,Node提供了大量的工具库(API),使得Javascript
+    语言与操作系统互动(比如读写文件、新建子进程)、所以在这个意义上又是Javascript的工具库。
+    3.Node=V8引擎(用于执行ES)+libuv库(比如:fs.readFile());
+    注意：生产环境大都是linux;开发环境一般是windows;
+    相关连接：https://github.com/sindresorhus/awesome-nodejs等
+
+
+
+
+
+
+
+
+
+
+Node环境配置
+    1.不推荐安装包.msi,首先新旧版本的切换不方便
+
+    2.NVM的方法安装：nvm-windows下载,解压到一个新的全英文的目录
+    3.settings.txt中root:'nvm.exe的路径';   path:C:\node\node.js;  arch:64;   proxy(代理):
+    4.环境变量的配置：win+R =>  sysdm.cpl => 高级环境变量 =>用户变量 新建 =>
+                    NVM_HOME值为nvm.exe的路径,NVM_SYMLINK值为node快捷方式所在目录;
+                    PATH值为%NVM_HOME%;%NVM_SYMLINK%;
+    5.检查配置是否完成：cmd  set命令可以查看所有的环境变量
+                      set NVM_HOME;set NVM_SYMLINK;set PATH
+    6.执行nvm:nvm ls  ===>注意其实这个nvm指的是执行这个nvm程序,后面ls等都是参数。
+             (其他的类似于npm、webpack也是同样的道理)
+
+
+
+
+
+
+
+
+
+进程和线程(进程包含线程)
+    进程:进行中的程序，没有先后开启的顺序
+         1.每一个正在运行的应用程序都称之为进程
+         2.每一个程序运行都至少有一个进程
+         3.进程都是用来给应用程序提供一个运行环境
+         4.进程是操作系统为应用程序分配资源的一个单位
+         例如：
+            .exe—————>启动————>Exe进程
+    线程:用来执行应用程序中的代码
+         1.在一个进程的内部，可以有很多个线程
+         2.在一个进程的内部，可以同时只干一件事
+         3.传统的开发方式大部分都是I/O阻塞的,所以需要多线程来更好的利用硬件资源
+         注意：不是线程越多越好
+    什么原因让多线程没落？
+         1.线程之间共享某些数据,同步某个状态都很麻烦a线程需要b线程里面的变量
+         2.致命的:创建线程耗费  线程数量有限  CPU在不同线程之间转换,有个上下文转换,非常耗时间
+         3.其实多线程都是假的,因为只有一个CPU(单核)
+         4.如果不是单核，那么多线程就会比单线程强
+
+异步操作：就类似于ajax,定时器,文件操作
+    1.Node采用Chrome v8引擎处理Javascript脚本,v8最大的特点就是单线程,一次只能运行一个任务
+    2.Node大量采用异步操作,就是任务不是马上执行，而是插在任务队列的尾部,等到前面的任务运行完后再执行
+      (比如读文件的操作fs.readFile('./FileTest/1.txt',))
+    3.提高代码的响应能力
+    注意：node中所有会发生阻塞的操作都是异步(一个是磁盘操作,一个是网络操作)
+回调函数的设计(node中回调函数的设计)：强调错误优先;注意回调黑洞(一直回调)
+    1.对于一个函数如果需要定义回调函数：
+        -回调函数一定作为参数的最后一个参数出现
+        function foo1(name,age,callback){}
+        function foo2(value,callback1,callback2){}
+        -回调函数的第一个参数默认接收错误信息,第二个参数才是真正的回调数据(便于外界获取调用的错误情况)
+            foo1('Jack',19,function(error,data){
+                if(error) throw error;
+                console.log(data);
+            })
+    2.强调错误优先：
+        因为之后的操作大多数都是异步的方式，无法通过try catch 捕获异常
+        错误优先的回调函数--第一个参数为上一步的错误信息
+    异步回调的问题：
+        不容易阅读，不容易调试，不容易维护
+
+
+什么是I/O(input/output)
+    可以理解为从输入到输出之间的转化过程
+    一般遇到I/O的时候都可能造成阻塞
+
+
+非阻塞I/O(Node的核心特性):没有从输入到输出之间的转化过程
+    主(单)线程先进行走完，然后再去事件队列(Event Queue:进行Loop)中去做那些callback
+
+事件驱动和非阻塞机制
+    非阻塞的优势：
+        .提高代码的响应率
+        .充分利用单核CPU的优势
+        .改善I/O的不可预测带来的问题
+    但是目前市面大多都是多核CPU,解决将多核划分为单核
+    注意：在Node中,他相对于外界是一个单线程的,其实他的底层还是存在多线程,就比如说他内部的文件,系统的操作都会采用多线程去做。
+
+总结：1.Node平台将一个任务连同该任务的回调函数放到一个事件循环系统中
+     2.事件循环高效的管理系统和线程池同时高效执行每一个任务
+     3.当任务执行完成之后自动执行回调函数
+     主要是：Node中的所有的阻塞操作交给了内部实现的线程池
+            Node本身主线程主要就是不断的往返调度
+平台实现差异：
+     由于Windows和*nix平台的差异,Node提供了libuv作为抽象封装层,保证上层的Node与下层的自定义线程池及IOCP之间各自独立
+     Node.js——>libuv——>Unix/Linux(自定义线程池)|Windows(IOCP)
+
+**********************************注意在Git或者其他的cmd中输入Node命令的时候一定要进入当前文件的目录下*******************************
+**********************************如果是在webstorm或者其他的IDE编译器中可以直接RUN,因为默认在当前的目*******************************
+**********************************录下,否则会出现路径不正确***********************************************************************
+
+
+
+
+
+
+
+
+
+
+模块化结构：
+        .Node实现CommonJS规范，可以使用模块化的方案组织代码结构
+        .模块与文件是一一对应关系，即加载一个模块，实际上就是加载对应的一个模块文件
+模块的分类：
+        .文件模块：就是我们自己写的功能模块文件 通过require引入
+        .核心模块：Node平台自带的一套基本的功能模块，也称之为Node平台的API 比如fs,http,mysql等
+        .第三方模块：社区或第三方个人开发的功能模块，可以直接拿回来用
+模块内全局环境(伪):
+        .在之后的文件操作中必须使用绝对路径
+        .__dirname
+            -用于获取当前文件所在目录的完整路径
+            -在REPL环境下无效
+        .__filename
+            -用来获取当前文件的完整路径
+            -在REPL环境同样
+        .module：他主要的作用就是导出成员  Node内部提供一个Module构造函数。
+                 所有的模块都是Module的实例。载入一个模块就是构建一个Module实例
+            -模块化对象Module的属性：
+                id:当前文件的路径 通常是带有绝对路径的模块文件名
+                exports:暴露出来的成员，模块对外输出的值
+                parent:他的父对象，返回一个对象，表示调用该模块的模块
+                filename:模块定义的文件的绝对路径(父子模块都是各自的路径)
+                loaded:模块脚本是否全部加载完
+                children:当前的模块用到了哪些其他模块，返回一个数组
+                paths:模块依次加载过来的一个顺序
+        .exports(忽略，直接使用module.exports)
+            -映射到module.exports的别名  以后可以不用管这个exports
+            相当于：
+                var module={};
+                module.exports={};
+                var exports=module.exports;
+
+        .require:Node使用CommonJS模块规范,内置的require函数用于加载模块文件
+                 require的基本功能是,读入并执行一个Javascript文件,然后返回该模块的exports对象
+                 其实就是把Javascript文件中的代码获取过来,类似于通过eval解析执行代码。
+                 也可以载入其他的文件，例如json(读取配置信息)，如果没有发现指定模块，会报错
+                1.如果参数字符串不以"./"或"/"开头。则表示加载的是一个默认提供的核心模块(位于Node的系统安装目录中)
+                    -require('fs'); ==>加载核心模块中的文件系统模块
+                2.或者从当前目录向上搜索node_modules目录中的文件
+                    -require('my_module');==>各级node_modules文件夹中搜索my_module.js文件
+                注意：他找的一种是node核心模块或者是npm下来的模块 系统模块的优先级最高,如果说不写"./"或"/",就新建一个node_module
+                      文件夹中，把模块放到node_module中
+            -require.cache:他是一个对象，里面记录了require所有的缓存
+            -require.extensions
+            -require.main
+            -require.resolve()
+模块的缓存：(加速应用程序)
+        .第一次加载某个模块时,Node会缓存该模块。以后再加载该模块,就直接从缓存取出该模块的
+         module.exports属性(不会再次执行该模块)
+        .如果需要多次执行模块中的代码,一般可以让模块暴露行为(函数)
+        .模块的缓存可以通过require.cache拿到,同样也可以删除
+模块的定义：
+    .一个新的js文件就是一个模块；
+    .一个合格的模块应该是有导出成员的，否则模块就失去了定义的价值
+    .模块的内部是一个独立(封闭)的作用域(模块与模块之间不会冲突)
+    .模块之间必须通过导出或导入的方式协同
+    .导出方式有两种：
+        -exports.name=value;//不推荐
+        -module.exports={name:value}
+    注意：没有必要在写匿名自执行函数了(function(){})();因为模块的内部是一个独立(封闭)的作用域
+
+
+
+
+
+
+
+
+
+
+Node基础概念概要
+    1.Node命令的基本用法
+            进入REPL环境：node  或者  node --use_strict(进入严格模式)
+            执行脚本字符串：node -e 'console.log('hello')';这个e就是eval
+            运行脚本文件：node index.js
+                         node path/index.js
+            查看帮助：node -help
+
+    2.REPL环境(Read,Eval,Print,Loop):有点类似Chorme里面的console控制台
+                接受用户输入    <————
+                     |             |
+                执行用户输入        |
+                     |             |
+             打印执行结果到控制台    |
+                     |             |
+                循环到下一次——————————
+        操作：退出node REPL环境===> Ctrl+两次c 或者直接.exit再或者process.exit();
+              _:表示上一个命令的返回结果;
+
+    3.全局对象
+        global:
+            -类似于Javascript的运行环境的window
+
+        process:
+            -用于获取当前的Node进程信息，一般用于获取环境变量之类的信息
+            -常用成员：
+                1.process.argv:输出的前两个参数：01.node.exe的路径  02.当前执行文件的路径
+                               其实前两个参数没有多大的用;
+                               一般：process.argv.slice(2)取后面的值;
+                2.process.stdout:操作控制台-->输出
+                                process.stdout.write()
+                3.process.stdin:操作控制台-->输入(用户可以输入)
+                                process.stdin.on('data',(data)=>{});这里面的on类似于jquery里面的on,用来注册事件的,
+                                'data'是接收的用户输入数据
+
+                4.process.exit():会强制进程尽快结束，即使仍然有很多处于等待中的异步操作没有全部执行完成,
+                                 在大多数情况下，显式调用process.exit()是没有必要的.
+                5.process.on('事件',()=>{}):进程事件的监听
+
+
+                贴：gif转成txt的网站：http://www.degraeve.com/img2txt.php
+
+        console:
+            -Node中内置的console模块，提供操作控制台的输入输出功能，常见使用方式和客户端类似
+
+    4.全局变量
+
+    5.全局函数
+
+    6.异步操作之回调函数
+
+    7.Node调试
+         debugger:node debug hello.js
+         其他的：1.console.log()
+                2.nodejs.org/api/debugger.html
+                3.npm install node-inspector -g (第一种基于chrome)
+                  npm install devtool -g (这个好像有bug)
+
+
+
+
+
+
+NPM包的概念:Node Package Manage
+    .由于Node是一套轻内核的平台,虽然提供了一系列的内置模块,但是不足以满足开发者的需求,于是出现了
+    包的概念
+    .与核心模块类似,就是将一些预先设计好的功能或者说API封装到一个文件夹,提供给开发者
+    1.安装NPM：
+        .不需要单独安装。默认在安装Node的时候,会连带一起安装NPM
+        .更新最新版本：npm install npm -g
+        .默认安装到当前系统Node所在目录下
+        获取镜像命令(了解)：npm install -g nrm
+                          nrm ls;所有的镜像源 cnpm
+                          nrm use cnpm  (使用淘宝镜像)
+                          nrm test(测试镜像加载时间)
+
+    2.配置NPM的全局目录：
+        .npm config set prefix [pathtonpm]
+        将NPM目录配置到其他目录时候,必须将该目录放到环境变量中,否则无在全局使用
+
+    3.常用NPM命令：
+        .npm config ：npm的全局config配置
+        .npm init : 初始化包
+        .npm search : 搜索包的名字
+        .npm info : 给一个包的id
+        .npm list :当前项目的依赖项
+
+
+
+
+
+
+
+
+
+Node核心(内置)模块
+    1.核心(内置)模块的意义：
+            .如果只是在服务器运行Javascript代码,意义不大,因为无法实现任何功能(读写文件,访问网络)
+            .Node的用处在它本身还提供的一系列功能模块，用于与操作系统互动
+            .这些核心的功能模块在Node中内置
+    2.核心(内置)模块：
+            文件：
+                .path  处理文件路径
+                .fs  操作(CRUD)文件系统
+            进程：
+                .child_process  新建子进程(由于Node是单线程,但是这个用的还是比较少，主要是通过物理方式)
+            工具：
+                .util  提供一系列实用小工具
+            网络
+                .http  提供HTTP服务器功能(像PHP,Java,.Net等平台都是需要建立一个http服务器,比如Apache,Tomcat,IIS;
+                        但是Node不需要,因为它本身就可以是一个http服务器)
+                .url  用于解析URL
+                .querystring  解析URL中的查询字符串
+                .crypto  提供加密解析功能(注意MD5是一种加密,但是不可逆)
+                其他
+
+
+
+
+
+
+
+
+
+
+
+
+缓冲区：
+    .缓冲区就是内存中操作数据的容器
+    .只是数据容器而已
+    .通过缓冲区可以很方便的操作二进制数据
+    .而且在大文件操作时必须有缓冲区
+    就是将较大的文件数据存放在缓存区，经过一个特殊处理
+为什么有缓冲区：
+    .JS是比较擅长处理字符串,但是早期的应用场景主要用于处理HTML文档,不会有太大篇幅
+    的数据处理,也不会接触到二进制的数据
+    .而在Node中操作数据、网络通信是没有办法完全以字符串方式操作的
+    .所以在Node中引入了一个二进制的缓冲区的实现：Buffer
+创建缓冲区：
+    .创建长度为4个字节的缓冲区
+    .var buffer=new Buffer(4);
+    .通过指定数组内容的方式创建
+    .var buffer=new Buffer([00,01]);
+    .通过指定编码的方式创建
+    .var buffer=new Buffer('hello','utf-8')
+
+
+
+同步或异步调用
+     .fs模块对文件的几乎所有操作都有同步和异步两种形式
+          例如 ：readline() 和 readFileSync()
+     .区别：
+          -同步调用会阻塞代码的执行,异步不会
+          -异步调用会将读取任务下达到任务队列,直到任务执行完成才会回调
+          -异常处理方面，同步必须使用try catch方式，异步可以通过回调函数
+           的第一个参数
+
+
+文件系统操作(非常重要,主要是增删改查)
+        -相关的模块：
+            1.fs:基础的文件操作API
+
+            2.path:提供和路径相关操作API
+                .在文件操作的过程中 都必须使用物理路径(绝对路径)
+                .path提供了一系列与路径相关的API
+                   -path.join([p1][,p2][,p3]..) =>连接多个路径
+                   -path.basename(p,ext)=>获取文件名
+                   -path.dirname(p) =>获取文件夹路径
+                   -path.extname(p) =>获取文件扩展名
+                   -path.format(obj) 和 path.parse(p)
+                   -path.relative(from,to) =>获取从from到to的相对路径
+                    .......
+
+            3.readline:用于读取大文本文件,一行一行读
+                        const readline = require('readline');
+                        const fs = require('fs');
+                        const rl = readline.createInterface({
+                          input: fs.createReadStream('sample.txt')
+                        });
+                        rl.on('line', (line) => {
+                          console.log('Line from file:', line);
+                        });
+
+            4.fs-extra(第三方):https://www.npmjs.com/package/fs-extra
+
+        -文件读取：
+            1.异步文件读取
+                fs.readFile(file[,options],callback(err,data))
+            2.同步文件读取
+                fs.readFileSync(file,[,option])
+            3.文件流的方式读取（后面单独介绍）
+                fs.createReadStream(path[, options])
+            注意：打开一个文件，文件还是在磁盘上，只是内存中多了一个副本而已
+
+        -文件写入：
+            1.确保操作没有额外的问题，一定使用绝对路径的方式
+            2.异步文件写入
+                fs.writeFile(file,data[,option],callback(err))
+            3.同步文件写入
+                fs.writeFileSync(file,data,[,option])
+            4.流式文件写
+                fs.createWriteStream(path[,option])
+            5.默认写入操作是覆盖源文件
+            6.异步追加
+                fs.appendFile(file,data[,options],callback(err))
+            7.同步追加
+                fs.appendFileSync(file,data[,options])
+
+        -其他文件操作：
+            1.验证路径是否存在（过时的API）
+                fs.exists(path,callback(exists))
+                fs.existsSync(path) // => 返回布尔类型 exists
+            2.获取文件信息
+                fs.stat(path,callback(err,stats))
+                fs.statSync(path) // => 返回一个fs.Stats实例
+            3.移动文件
+                fs.rename(oldPath,newPath)
+            4.重命名文件或目录
+                fs.rename(oldPath,newPath,callback)
+                fs.renameSync(oldPath,newPath)
+            5.删除文件
+                fs.unlink(path,callback(err))
+                fs.unlinkSync(path)
+
+        -目录操作：
+            1.创建一个目录
+                 fs.mkdir(path[,model],callback)
+                 fs.mkdirSync(path[,model])
+            2.删除一个空目录
+                 fs.rmdir(path,callback)
+                 fs.rmdirSync(path)
+            3.读取一个目录
+                 fs.readdir(path,callback(err,files))
+                 fs.readdirSync(path) // => 返回files
+
+        -监视文件：
+            1.监视文件变化：
+                fs.watchFile(filename[, options], listener(curr,prev))
+                    options:{persistent,interval}
+                fs.watch(filename[,options][,listener])
+
+
+文件操作进阶---文件流
+   主要的方式 ：1.直接读取文件到内存  2.通过内存中的缓冲区  3.通过pipe管道形式
+   1.什么是流Stream?
+        在开发程序中：
+            .流是程序输入或输出的一个连续的字节序列
+            .文件流、网络流
+            .设备(例如鼠标、键盘、磁盘、屏幕、调制解调器和打印机)的输入输出都是流来处理
+        在Node的文档中经常见到流Stream
+            .文件流 网络流
+            .任何数据的最根本表现形式都是二进制的
+   2.文件流
+        .文件流就是以面向对象的概念对文件数据进行的抽象
+        .文件流定义了一些对文件数据的操作方式
+             数据源——数据流---读出程序
+             程序---写入——数据流 目的
+        Node中的文件流的操作:Node核心模块fs中定义了一些与流相关的API
+             -fs.createReadStream() =>得到一个ReadableStream
+             -fs.createWriteStream() =>得到一个WriteableStream
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+网络系统操作：Node内部与网络操作相关的模块
+    1.url:用于解析URL格式的模块
+
+    2.querystring:用于操作类似key=value&key2=value2的查询字符串
+
+    3.http:用于创建HTTP服务器或HTTP客户端
+        -HTTP基础知识
+            1.浏览器地址栏内输入URL
+                .输入地址(注意本地是否有缓存)
+                .DNS解析，主控DNS服务器
+                .获取服务器地址
+                .以一个本地的随机端口向服务器的特定端口发送请求，开始所谓的三次握手
+                 建立TCP/IP的连接
+                .发送真正意义的请求，去请求服务器的某一个地址
+                .服务器拿到这个请求，根据你请求的路径或其他信息给你返回对应的数据
+                .浏览器拿到服务器的响应
+
+            2.什么是HTTP?
+                超文本传输协议 一种用来规范计算机与计算机之间的通信格式的网络协议
+            3.HTTP中的常见名词
+                Request Message(请求)
+                    Headers
+                    Body
+                Response Message(响应)
+                    Headers
+                    Body
+                就是出现在请求与响应之间的报文：
+                .将用户在地址栏输入的URL地址封装为一个请求消息(包含请求头和请求体字符串)
+                .将得到的请求消息通过Socket的方式发送到所请求的网站服务
+                .接收服务器返回的响应消息(包含响应头和响应体的字符串)
+                .解析响应消息中的数据，渲染到界面上
+                请求响应过程：
+                .HTTP客户端发起一个队服务器的请求
+                .创建一个从客户端到服务器特定端口的TCP连接
+                .HTTP服务器则会监听这个端口上所有客户端发来的请求
+                .一旦接收到请求，服务器会立即做出响应，输出一个状态的和一个内容
+                注意:在请求响应过程中,发起请求的叫客户端，接收请求的叫服务端。
+            4.HTTP报文
+                .用于HTTP协议交互的信息被称为HTTP报文。请求端的HTTP报文叫做请求报文，
+                 响应端的叫做响应报文
+                .HTTP报文本身是由多行数据结构的字符串文本
+                    报文首部：服务端或客户端处理的请求或响应的内容及属性
+                    空行(CR+LF):CR==>回车符16进制  LF==>换行符16进制
+                    报文主体:应被发送的数据
+            5.HTTP请求报文的构成
+               请求行：      方法        URI            协议版本
+                            POST    /form/entry       HTTP/1.1
+
+                 请求的首部字段
+                 Host:www.baidu.com
+                 Connection:keep-alive
+                 Content-Type:application/x-www-form-urlenconded
+                 Content-Length:16
+                 内容实体(格式)
+                 name=ueno&age=37
+            6.响应报文的构成
+                协议版本       状态码    状态码的原因短语
+                 HTTP/1.1       200         ok
+
+                响应首部字段
+                Date:Tue 10 Jul 2016 06..
+                Content-Encoding:gzip  :返回过来的是一个压缩的文件，必须解压缩一下
+                Content-Length:362
+                Content-Type:text/html;charset=utf-8
+                响应的主体内容
+                <html>.....</html>
+            7.HTTP是无状态的协议
+                使用HTTP协议，每当有新的请求发送时候，就会有对应的新响应产生协议本身并不
+                保留之前的一切的请求或响应报文的信息。这是为了更快的处理大量事物，确保协议
+               的可伸缩性，而特意把HTTP协议设计成如此简单
+            8.HTTP/1.0和HTTP/1.1支持的常用方法
+                GET：获取资源
+                POST:传输实体主体
+                PUT:传输文件
+                DELETE:删除文件
+                (还有其他的，上面四个常用)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
